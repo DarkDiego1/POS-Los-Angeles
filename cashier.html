@@ -1,435 +1,109 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Caja - Punto de Venta</title>
-<style>
-:root{--bg:#f4f6f8;--card:#fff;--ink:#1d2733;--mut:#6b7785;--pri:#2563eb;--ok:#16a34a;--bad:#dc2626;--line:#e3e8ee}
-*{box-sizing:border-box}
-body{margin:0;font:16px system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
-header{background:var(--ink);color:#fff;padding:0 20px;display:flex;justify-content:space-between;align-items:center;height:52px}
-header b{font-size:1.05rem;letter-spacing:-.3px}
-.pos{display:grid;grid-template-columns:1fr 340px;gap:16px;padding:16px;height:calc(100vh - 52px)}
-.left{display:flex;flex-direction:column;gap:12px;min-height:0}
-.cart{flex:1;overflow:auto}
-.scan{position:relative}
-.scan input{font-size:1.15rem;padding:14px 16px}
-.sug{position:absolute;left:0;right:0;top:100%;background:#fff;border-radius:8px;box-shadow:0 8px 24px #0003;z-index:5;display:none;overflow:hidden;border:1px solid var(--line)}
-.sug div{padding:12px 16px;cursor:pointer;display:flex;justify-content:space-between}
-.sug div:hover,.sug div.sel{background:#eef3ff}
-.side{display:flex;flex-direction:column;gap:12px}
-.side .big{color:var(--ok)}
-.empty{text-align:center;color:var(--mut);padding:60px 0}
-.keys{color:var(--mut);font-size:.85rem}
-.card{background:var(--card);border-radius:8px;padding:16px;box-shadow:0 1px 3px #0001;border:1px solid var(--line)}
-button{font:inherit;border:0;border-radius:6px;padding:10px 16px;background:var(--pri);color:#fff;cursor:pointer}
-button:hover{filter:brightness(1.06)}
-button.g{background:#e8edf3;color:var(--ink)}
-button.r{background:var(--bad)}
-button.ok{background:var(--ok)}
-button:disabled{opacity:.4;cursor:not-allowed}
-input,select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:6px;width:100%;background:#fff}
-input:focus,select:focus{outline:2px solid var(--pri);border-color:transparent}
-table{width:100%;border-collapse:collapse}
-th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}
-th{color:var(--mut);font-weight:600;font-size:.85rem}
-.num{text-align:right}
-.big{font-size:2.4rem;font-weight:700}
-.mut{color:var(--mut);font-size:.9rem}
-.bad{color:var(--bad)}
-.modal{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
-.modal.on{display:flex}
-.modal .card{width:100%;max-width:440px}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:6px;display:none;z-index:20}
-.toast.bad{background:var(--bad);color:#fff}
-.toast.on{display:block}
-.row{display:flex;gap:10px;align-items:center}
-.lbl{display:block;margin:10px 0 4px;color:var(--mut);font-size:.85rem;font-weight:600}
-
-/* BOTONES DENOMINACIONES */
-.denoms{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
-.denoms button{background:#f1f5f9;color:var(--ink);border:1px solid var(--line);font-weight:600;padding:10px 0}
-.denoms button:hover{background:#e2e8f0}
-.exact-btn{grid-column:span 3;background:#eef2ff;color:var(--pri);border:1px dashed var(--pri)}
-
-#tk{display:none}
-@media print{
-body *{visibility:hidden}
-#tk,#tk *{visibility:visible}
-#tk{display:block;position:absolute;left:0;top:0;width:72mm;font:12px monospace;color:#000}
-#tk table td{border:0;padding:2px 0}
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Caja - Punto de Venta</title>
+  <link rel="stylesheet" href="CSS/common.css">
+  <link rel="stylesheet" href="CSS/cashier.css">
 </head>
 <body>
 
-<header>
-<b>TERMINAL DE CAJA</b>
-<span class="mut" style="color:#94a3b8;font-size:.85rem">F2 Buscar · F9 Cobrar · F4 Vaciar</span>
-</header>
+  <header>
+    <b>TERMINAL DE CAJA</b>
+    <span class="mut" style="color:#000000">F2 Buscar · F9 Cobrar · F4 Vaciar</span>
+  </header>
 
-<div class="pos">
-<div class="left">
-<div class="scan">
-<input id="in" placeholder="Escanea código o busca producto…" autocomplete="off" autofocus>
-<div class="sug" id="sug"></div>
-</div>
-<div class="card cart">
-<table>
-<thead><tr><th>Producto</th><th class="num">Precio</th><th class="num">Cantidad</th><th class="num">Importe</th><th></th></tr></thead>
-<tbody id="rows"></tbody>
-</table>
-<div class="empty" id="empty">Escanea un código o usa el buscador para agregar artículos</div>
-</div>
-<div class="keys">F2 enfocar escáner · F9 cobrar · F4 vaciar · Cantidades: <b>3*código</b></div>
-</div>
+  <div class="pos">
+    <div class="left">
+      <div class="scan">
+        <input id="in" placeholder="Escanea código o busca producto…" autocomplete="off" autofocus>
+        <div class="sug" id="sug"></div>
+      </div>
+      <div class="card cart">
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th class="num">Precio</th>
+              <th class="num">Cantidad</th>
+              <th class="num">Importe</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div class="empty" id="empty">Escanea un código o usa el buscador para agregar artículos</div>
+      </div>
+      <div class="keys">F2 enfocar escáner · F9 cobrar · F4 vaciar · Cantidades: <b>3*código</b></div>
+    </div>
 
-<div class="side">
-<div class="card">
-<div class="mut">Total a pagar</div>
-<div class="big" id="tot">$0.00</div>
-<div class="mut" id="cnt">0 artículos</div>
-</div>
-<button class="ok" id="cob" style="padding:16px;font-size:1.15rem;font-weight:600" disabled>Cobrar (F9)</button>
-<button class="g" id="clr">Vaciar venta (F4)</button>
-</div>
-</div>
+    <div class="side">
+      <div class="card">
+        <div class="mut">Total a pagar</div>
+        <div class="big" id="tot">$0.00</div>
+        <div class="mut" id="cnt">0 artículos</div>
+      </div>
+      <button class="ok" id="cob" style="padding:16px;font-size:1.15rem;font-weight:600" disabled>Cobrar (F9)</button>
+      <button class="g" id="clr">Vaciar venta (F4)</button>
+    </div>
+  </div>
 
-<!-- MODAL COBRO CON BOTONES DE BILLETES -->
-<div class="modal" id="mp">
-<div class="card">
-<h3 style="margin-top:0">Cobrar venta</h3>
-<div class="big" id="mt">$0.00</div>
+  <!-- Modal Cobro -->
+  <div class="modal" id="mp">
+    <div class="card">
+      <h3 style="margin-top:0">Cobrar venta</h3>
+      <div class="big" id="mt">$0.00</div>
 
-<label class="lbl">Método de pago</label>
-<select id="met">
-<option value="efectivo">Efectivo</option>
-<option value="tarjeta">Tarjeta</option>
-</select>
+      <label class="lbl">Método de pago</label>
+      <select id="met">
+        <option value="efectivo">Efectivo</option>
+        <option value="tarjeta">Tarjeta</option>
+      </select>
 
-<div id="cash">
-<label class="lbl">Monto recibido</label>
-<input id="paid" type="number" step="0.01" min="0">
+      <div id="cash">
+        <label class="lbl">Monto recibido</label>
+        <input id="paid" type="number" step="0.01" min="0">
 
-<div class="denoms">
-<button type="button" onclick="addMoney(20)">+$20</button>
-<button type="button" onclick="addMoney(50)">+$50</button>
-<button type="button" onclick="addMoney(100)">+$100</button>
-<button type="button" onclick="addMoney(200)">+$200</button>
-<button type="button" onclick="addMoney(500)">+$500</button>
-<button type="button" onclick="addMoney(1000)">+$1000</button>
-<button type="button" class="exact-btn" onclick="exactMoney()">Pago Exacto</button>
-</div>
+        <div class="denoms">
+          <button type="button" onclick="addMoney(20)">+$20</button>
+          <button type="button" onclick="addMoney(50)">+$50</button>
+          <button type="button" onclick="addMoney(100)">+$100</button>
+          <button type="button" onclick="addMoney(200)">+$200</button>
+          <button type="button" onclick="addMoney(500)">+$500</button>
+          <button type="button" onclick="addMoney(1000)">+$1000</button>
+          <button type="button" class="exact-btn" onclick="exactMoney()">Pago Exacto</button>
+        </div>
 
-<div style="margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px;border:1px solid var(--line)">
-<div id="status-line" style="font-size:1.2rem;font-weight:600">Cambio: $0.00</div>
-<div id="missing-warn" class="mut" style="display:none;color:var(--bad)">Falta dinero por cubrir para completar la venta.</div>
-</div>
-</div>
+        <div style="margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px;border:1px solid var(--line)">
+          <div id="status-line" style="font-size:1.2rem;font-weight:600">Cambio: $0.00</div>
+          <div id="missing-warn" class="mut" style="display:none;color:var(--bad)">Falta dinero por cubrir para completar la venta.</div>
+        </div>
+      </div>
 
-<div class="row" style="margin-top:16px;justify-content:flex-end">
-<button class="g" id="no">Cancelar (Esc)</button>
-<button class="ok" id="go" disabled>Confirmar cobro</button>
-</div>
-</div>
-</div>
+      <div class="row" style="margin-top:16px;justify-content:flex-end">
+        <button class="g" id="no">Cancelar (Esc)</button>
+        <button class="ok" id="go" disabled>Confirmar cobro</button>
+      </div>
+    </div>
+  </div>
 
-<!-- MODAL VENTA EXITOSA -->
-<div class="modal" id="md">
-<div class="card" style="text-align:center">
-<h3 style="margin-top:0">Venta completada</h3>
-<div class="mut">Cambio a entregar</div>
-<div class="big" id="dc">$0.00</div>
-<div class="row" style="margin-top:20px;justify-content:center">
-<button class="g" id="pr">Imprimir ticket</button>
-<button id="nw">Nueva venta (Enter)</button>
-</div>
-</div>
-</div>
+  <!-- Modal Éxito -->
+  <div class="modal" id="md">
+    <div class="card" style="text-align:center">
+      <h3 style="margin-top:0">Venta completada</h3>
+      <div class="mut">Cambio a entregar</div>
+      <div class="big" id="dc">$0.00</div>
+      <div class="row" style="margin-top:20px;justify-content:center">
+        <button class="g" id="pr">Imprimir ticket</button>
+        <button id="nw">Nueva venta (Enter)</button>
+      </div>
+    </div>
+  </div>
 
-<div id="tk"></div>
-<div class="toast" id="ts"></div>
+  <div id="tk"></div>
+  <div class="toast" id="ts"></div>
 
-<script>
-const $=s=>document.querySelector(s)
-const m=n=>'$'+Number(n).toFixed(2)
-const e=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))
-
-// MOCK LOCAL SI SE ABRE SIN SERVIDOR PYTHON
-let DB=[
-  {id:1,code:'75010001',name:'Leche Entera 1L',price:27.50,stock:15},
-  {id:2,code:'75010002',name:'Pan de Caja Blanco',price:38.00,stock:10},
-  {id:3,code:'75010003',name:'Refresco Cola 600ml',price:18.00,stock:24},
-  {id:4,code:'75010004',name:'Papas Fritas Sal 45g',price:17.50,stock:8}
-]
-
-const api={
-  async search(q){
-    try{
-      const r=await fetch('/api/search?q='+encodeURIComponent(q))
-      if(r.ok)return await r.json()
-    }catch(err){}
-    return DB.filter(x=>x.name.toLowerCase().includes(q.toLowerCase())||x.code.includes(q))
-  },
-  async getByCode(c){
-    try{
-      const r=await fetch('/api/product/'+encodeURIComponent(c))
-      if(r.ok)return await r.json()
-    }catch(err){}
-    return DB.find(x=>x.code===c)||null
-  },
-  async saveSale(data){
-    try{
-      const r=await fetch('/api/sales',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
-      if(r.ok)return await r.json()
-    }catch(err){}
-    const chg=data.paid-data.total
-    data.items.forEach(it=>{
-      const p=DB.find(x=>x.id===it.id)
-      if(p)p.stock-=it.qty
-    })
-    return {id:Math.floor(Math.random()*9000)+1000,change:chg}
-  }
-}
-
-let cart=[],last=null,sg=[],si=-1,tm=0
-const inp=$('#in')
-
-function msg(t,bad){
-  const x=$('#ts')
-  x.textContent=t
-  x.className='toast on'+(bad?' bad':'')
-  clearTimeout(tm)
-  tm=setTimeout(()=>x.className='toast',2500)
-}
-
-const total=()=>cart.reduce((a,p)=>a+p.price*p.qty,0)
-
-function draw(){
-  $('#rows').innerHTML=cart.map((p,i)=>`<tr>
-    <td><b>${e(p.name)}</b><div class="mut">${e(p.code)}</div></td>
-    <td class="num">${m(p.price)}</td>
-    <td class="num">
-      <button class="g" onclick="chg(${i},-1)">−</button>
-      <b style="display:inline-block;min-width:28px;text-align:center">${p.qty}</b>
-      <button class="g" onclick="chg(${i},1)">+</button>
-    </td>
-    <td class="num">${m(p.price*p.qty)}</td>
-    <td class="num"><button class="g" onclick="del(${i})">✕</button></td>
-  </tr>`).join('')
-  $('#empty').style.display=cart.length?'none':'block'
-  $('#tot').textContent=m(total())
-  const n=cart.reduce((a,p)=>a+p.qty,0)
-  $('#cnt').textContent=n+(n===1?' artículo':' artículos')
-  $('#cob').disabled=!cart.length
-}
-
-function add(p,n=1){
-  const x=cart.find(c=>c.id===p.id)
-  const q=(x?x.qty:0)+n
-  if(q>p.stock){msg('Solo hay '+p.stock+' en existencia de '+p.name,1);return}
-  if(x)x.qty=q
-  else cart.push({...p,qty:n})
-  draw()
-  inp.focus()
-}
-
-function chg(i,d){
-  const p=cart[i]
-  const q=p.qty+d
-  if(q<1){del(i);return}
-  if(q>p.stock){msg('Solo hay '+p.stock+' disponibles',1);return}
-  p.qty=q
-  draw()
-  inp.focus()
-}
-
-function del(i){cart.splice(i,1);draw();inp.focus()}
-function hide(){$('#sug').style.display='none';sg=[];si=-1}
-
-function show(list,n){
-  sg=list.map(p=>({p,n}))
-  si=-1
-  $('#sug').innerHTML=list.map((p,i)=>`<div data-i="${i}"><span>${e(p.name)} <span class="mut">${e(p.code)}</span></span><b>${m(p.price)}</b></div>`).join('')
-  $('#sug').style.display='block'
-}
-
-$('#sug').addEventListener('mousedown',ev=>{
-  const d=ev.target.closest('[data-i]')
-  if(!d)return
-  ev.preventDefault()
-  const s=sg[+d.dataset.i]
-  hide()
-  inp.value=''
-  add(s.p,s.n)
-})
-
-function parse(v){
-  const t=v.match(/^(\d+)\*(.+)$/)
-  return t?{n:+t[1],v:t[2].trim()}:{n:1,v}
-}
-
-let dt=0
-inp.addEventListener('input',()=>{
-  clearTimeout(dt)
-  const {v,n}=parse(inp.value.trim())
-  if(v.length<2){hide();return}
-  dt=setTimeout(async()=>{
-    const l=await api.search(v)
-    if(inp.value.trim()&&l.length)show(l,n)
-    else hide()
-  },200)
-})
-
-inp.addEventListener('keydown',async ev=>{
-  if(ev.key==='ArrowDown'&&sg.length){
-    ev.preventDefault()
-    si=(si+1)%sg.length
-    document.querySelectorAll('#sug div').forEach((d,i)=>d.classList.toggle('sel',i===si))
-    return
-  }
-  if(ev.key==='ArrowUp'&&sg.length){
-    ev.preventDefault()
-    si=(si-1+sg.length)%sg.length
-    document.querySelectorAll('#sug div').forEach((d,i)=>d.classList.toggle('sel',i===si))
-    return
-  }
-  if(ev.key==='Escape'){hide();return}
-  if(ev.key!=='Enter')return
-
-  clearTimeout(dt)
-  if(si>=0&&sg[si]){
-    const s=sg[si]
-    hide()
-    inp.value=''
-    add(s.p,s.n)
-    return
-  }
-
-  const {v,n}=parse(inp.value.trim())
-  inp.value=''
-  hide()
-  if(!v)return
-
-  const p=await api.getByCode(v)
-  if(p){add(p,n);return}
-
-  const l=await api.search(v)
-  if(l.length===1)add(l[0],n)
-  else if(l.length>1)show(l,n)
-  else msg('Producto no encontrado: '+v,1)
-})
-
-inp.addEventListener('blur',()=>setTimeout(hide,150))
-
-// COBRO Y BILLETES
-function cobrar(){
-  if(!cart.length)return
-  $('#mt').textContent=m(total())
-  $('#met').value='efectivo'
-  $('#cash').style.display='block'
-  $('#paid').value=''
-  calc()
-  $('#mp').classList.add('on')
-  $('#paid').focus()
-}
-
-function addMoney(amount){
-  const current=parseFloat($('#paid').value)||0
-  $('#paid').value=(current+amount).toFixed(2)
-  calc()
-}
-
-function exactMoney(){
-  $('#paid').value=total().toFixed(2)
-  calc()
-}
-
-function calc(){
-  const met=$('#met').value
-  const t=total()
-  if(met==='tarjeta'){
-    $('#go').disabled=false
-    $('#status-line').textContent='Cobro con terminal bancaria'
-    $('#missing-warn').style.display='none'
-    return
-  }
-  const paidVal=parseFloat($('#paid').value)||0
-  const diff=paidVal-t
-
-  if(paidVal<t){
-    const faltante=t-paidVal
-    $('#status-line').textContent='Faltan: '+m(faltante)
-    $('#status-line').style.color='var(--bad)'
-    $('#missing-warn').style.display='block'
-    $('#go').disabled=true
-  }else{
-    $('#status-line').textContent='Cambio: '+m(diff)
-    $('#status-line').style.color='var(--ok)'
-    $('#missing-warn').style.display='none'
-    $('#go').disabled=false
-  }
-}
-
-$('#paid').addEventListener('input',calc)
-$('#met').addEventListener('change',()=>{
-  const isCash=$('#met').value==='efectivo'
-  $('#cash').style.display=isCash?'block':'none'
-  calc()
-})
-
-$('#no').onclick=()=>{$('#mp').classList.remove('on');inp.focus()}
-$('#cob').onclick=cobrar
-$('#clr').onclick=()=>{if(cart.length&&confirm('¿Vaciar la venta actual?')){cart=[];draw()}inp.focus()}
-
-async function pay(){
-  const met=$('#met').value
-  const t=total()
-  const paid=met==='efectivo'?(parseFloat($('#paid').value)||0):t
-  if(paid<t){return}
-
-  const res=await api.saveSale({items:cart.map(p=>({id:p.id,qty:p.qty})),total:t,paid,method:met})
-  last={id:res.id,items:[...cart],total:t,paid,change:res.change,met,at:new Date()}
-  $('#mp').classList.remove('on')
-  $('#dc').textContent=m(res.change)
-  $('#md').classList.add('on')
-  $('#nw').focus()
-}
-
-$('#go').onclick=pay
-$('#mp').addEventListener('keydown',ev=>{
-  if(ev.key==='Enter'&&!$('#go').disabled){ev.preventDefault();pay()}
-  if(ev.key==='Escape')$('#no').click()
-})
-
-function nueva(){
-  cart=[]
-  last=null
-  draw()
-  $('#md').classList.remove('on')
-  inp.focus()
-}
-
-$('#nw').onclick=nueva
-$('#pr').onclick=()=>{
-  if(!last)return
-  $('#tk').innerHTML=`<div style="text-align:center"><b>TIENDA</b><br>Ticket #${last.id}<br>${last.at.toLocaleString('es-MX')}</div><hr><table>${last.items.map(p=>`<tr><td>${p.qty} x${e(p.name)}</td><td style="text-align:right">${m(p.price*p.qty)}</td></tr>`).join('')}</table><hr><div style="display:flex;justify-content:space-between"><b>TOTAL</b><b>${m(last.total)}</b></div><div style="display:flex;justify-content:space-between"><span>Pago (${last.met})</span><span>${m(last.paid)}</span></div><div style="display:flex;justify-content:space-between"><span>Cambio</span><span>${m(last.change)}</span></div><p style="text-align:center">¡Gracias por su compra!</p>`
-  window.print()
-}
-
-document.addEventListener('keydown',ev=>{
-  if(ev.key==='F2'){ev.preventDefault();inp.focus()}
-  if(ev.key==='F4'){ev.preventDefault();$('#clr').click()}
-  if(ev.key==='F9'){ev.preventDefault();if(!$('#md').classList.contains('on'))cobrar()}
-  if(ev.key==='Enter'&&$('#md').classList.contains('on')){ev.preventDefault();nueva()}
-})
-
-document.addEventListener('click',ev=>{
-  if(!ev.target.closest('.modal')&&!ev.target.closest('button')&&!ev.target.closest('input')&&!ev.target.closest('select'))inp.focus()
-})
-
-draw()
-</script>
+  <script src="js/cashier.js"></script>
 </body>
 </html>
