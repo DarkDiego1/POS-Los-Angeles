@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 {
   "name": "Mi Tienda Admin",
   "short_name": "Mi Tienda",
@@ -6,4 +7,14 @@
   "orientation": "portrait",
   "background_color": "#0f172a",
   "theme_color": "#0f172a"
+=======
+{
+  "name": "Mi Tienda Admin",
+  "short_name": "Mi Tienda",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a"
+>>>>>>> Stashed changes
 }
